@@ -1,0 +1,64 @@
+service:
+  port: 8443
+  targetPort: 8443
+  name: https-nginx
+  annotations:
+    service.alpha.openshift.io/serving-cert-secret-name: nginx-certificate
+
+probe:
+  scheme: HTTPS
+
+certificate:
+  enabled: True
+
+podAnnotations:
+  sidecar.istio.io/inject: "true"
+
+mesh:
+  enabled: True
+  appVersion: "1.0"
+  serviceName: app-nginx
+
+  gateway:
+    create: True
+    selector:
+      istio: ingressgateway
+    servers:
+    - hosts:
+        - '{{ .Values.serviceName }}-{{ .Release.Namespace }}.{{ .Values.baseDomain }}'
+      port:
+        name: https
+        number: 443
+        protocol: HTTPS
+      tls:
+        mode: PASSTHROUGH
+
+  virtualService:
+    create: True
+    hosts: 
+    - '{{ .Values.serviceName }}'
+    - '{{ .Values.serviceName }}.{{ .Release.Namespace }}.svc'
+    - '{{ .Values.serviceName }}-{{ .Release.Namespace }}.{{ .Values.baseDomain }}'
+    gateways:
+    - '{{ include "mesh.fullname" . }}'
+    tls:
+    - match:
+      - port: 8443
+        sniHosts:
+        - '{{ .Values.serviceName }}.{{ .Release.Namespace }}.svc'
+      route:
+      - destination:
+          host: '{{ .Values.serviceName }}'
+          port:
+            number: 8443
+
+  destinationRule:
+    create: True
+    host: '{{ .Values.serviceName }}'
+    trafficPolicy:
+      tls:
+        mode: ISTIO_MUTUAL
+    subsets:
+    - name: v1
+      labels:
+        version: "1.0"

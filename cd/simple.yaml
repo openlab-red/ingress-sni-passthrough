@@ -1,0 +1,48 @@
+podAnnotations:
+  sidecar.istio.io/inject: "true"
+
+mesh:
+  enabled: True
+  appVersion: "1.0"
+  serviceName: app-nginx
+
+  gateway:
+    create: True
+    selector:
+      istio: ingressgateway
+    servers:
+    - hosts:
+        - '{{ .Values.serviceName }}-{{ .Release.Namespace }}.{{ .Values.baseDomain }}'
+      port:
+        name: https
+        number: 443
+        protocol: HTTPS
+      tls:
+        # Must exists on the ingress gateway namespace
+        credentialName: nginx-certificate
+        mode: SIMPLE
+
+  virtualService:
+    create: True
+    hosts: 
+    - '{{ .Values.serviceName }}'
+    - '{{ .Values.serviceName }}-{{ .Release.Namespace }}.{{ .Values.baseDomain }}'
+    gateways:
+    - '{{ include "mesh.fullname" . }}'
+    http:
+    - route:
+      - destination:
+          host: '{{ .Values.serviceName }}'
+          port:
+            number: 8080
+
+  destinationRule:
+    create: True
+    host: '{{ .Values.serviceName }}'
+    trafficPolicy:
+      tls:
+        mode: ISTIO_MUTUAL
+    subsets:
+    - name: v1
+      labels:
+        version: "1.0"

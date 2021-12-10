@@ -1,0 +1,21 @@
+{{- if .Values.virtualService.create -}}
+kind: VirtualService
+apiVersion: networking.istio.io/v1beta1
+metadata:
+  name: {{ include "mesh.fullname" . }}
+  labels:
+    {{- include "mesh.labels" . | nindent 4 }}
+spec:
+  hosts:
+  {{- tpl (toYaml .Values.virtualService.hosts) . | nindent 4 }}
+  gateways:
+  {{- tpl (toYaml .Values.virtualService.gateways) . | nindent 4 }}
+  {{- if .Values.virtualService.http }}
+  http:
+  {{- tpl (toYaml .Values.virtualService.http) . | nindent 4 }}
+  {{- end }}
+  {{- if .Values.virtualService.tls }}
+  tls:
+  {{- tpl (toYaml .Values.virtualService.tls) . | nindent 4 }}
+  {{- end }}
+{{- end }}

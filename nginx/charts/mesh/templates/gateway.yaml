@@ -1,0 +1,15 @@
+{{- if .Values.gateway.create -}}
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: {{ include "mesh.fullname" . }}
+  labels:
+    {{- include "mesh.labels" . | nindent 4 }}
+spec:
+  {{- with .Values.gateway.selector }}
+  selector:
+  {{- toYaml . | nindent 4 }}
+  {{- end }}
+  servers:
+  {{- tpl (toYaml .Values.gateway.servers) . | nindent 4 }}
+{{- end }}

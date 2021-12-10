@@ -1,0 +1,25 @@
+baseDomain: ""
+serviceName: app
+
+gateway:
+  create: False
+  selector:
+    istio: ingressgateway
+  servers: []
+
+virtualService:
+  create: True
+  hosts: 
+  - '*'
+  gateways: []
+  http: []
+
+destinationRule:
+  create: True
+  host:
+  subsets: []
+
+service:
+  create: False
+
+appVersion: "1.0"
