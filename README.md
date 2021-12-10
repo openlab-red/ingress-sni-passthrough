@@ -39,7 +39,10 @@
 
     helm upgrade --install app nginx/ -f cd/passthrough.yaml --set mesh.baseDomain=$BASE_DOMAIN -n $DATA_PLANE
     ```
-
+    >
+    > It using the `service.alpha.openshift.io/serving-cert-secret-name`annotations for the certificate.
+    > 
+    
 3. Test the gateway
 
     ```
